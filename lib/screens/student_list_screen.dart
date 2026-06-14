@@ -1,0 +1,209 @@
+import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+
+import '../models/student.dart';
+import '../services/database_service.dart';
+import 'student_form_screen.dart';
+
+class StudentListScreen extends StatefulWidget {
+  static const routeName = '/students';
+
+  const StudentListScreen({super.key});
+
+  @override
+  State<StudentListScreen> createState() => _StudentListScreenState();
+}
+
+class _StudentListScreenState extends State<StudentListScreen> {
+  bool _isLoading = true;
+  List<Student> _students = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStudents();
+  }
+
+  Future<void> _loadStudents() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final data = await DatabaseService.instance.getStudents();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _students = data;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _openForm({Student? student}) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StudentFormScreen(student: student),
+      ),
+    );
+
+    if (changed == true) {
+      _loadStudents();
+    }
+  }
+
+  Future<void> _deleteStudent(Student student) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Hapus Data'),
+          content: Text('Yakin ingin menghapus ${student.name}?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || student.id == null) {
+      return;
+    }
+
+    await DatabaseService.instance.deleteStudent(student.id!);
+    _loadStudents();
+  }
+
+  void _showQrDialog(Student student) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'QR ${student.name}',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: QrImageView(
+                    data: student.qrCode,
+                    version: QrVersions.auto,
+                    size: 180,
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'NIS: ${student.qrCode}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  student.name,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'QR ${student.name} siap di-screenshot.',
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.screenshot),
+                      label: const Text('Screenshot'),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Tutup'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Data Siswa')),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _students.isEmpty
+          ? const Center(child: Text('Belum ada data siswa.'))
+          : RefreshIndicator(
+              onRefresh: _loadStudents,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: _students.length,
+                itemBuilder: (context, index) {
+                  final student = _students[index];
+                  return Card(
+                    child: ListTile(
+                      leading: CircleAvatar(child: Text('${index + 1}')),
+                      title: Text(student.name),
+                      subtitle: Text(
+                        'NIS: ${student.nis} | Kelas: ${student.className}',
+                      ),
+                      onTap: () => _showQrDialog(student),
+                      trailing: PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            _openForm(student: student);
+                          }
+                          if (value == 'delete') {
+                            _deleteStudent(student);
+                          }
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(value: 'edit', child: Text('Edit')),
+                          PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openForm(),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah Siswa'),
+      ),
+    );
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "absensi-qr-mysql-migrator",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Tools to migrate Absensi QR data from SQLite to MySQL",
+  "type": "commonjs",
+  "scripts": {
+    "migrate": "node migrate_sqlite_to_mysql.js"
+  },
+  "dependencies": {
+    "mysql2": "^3.14.3",
+    "sqlite3": "^5.1.7"
+  }
+}

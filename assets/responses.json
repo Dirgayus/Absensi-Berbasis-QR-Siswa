@@ -1,0 +1,12 @@
+{
+  "admin": {
+    "Cara tambah user?": "Masuk ke menu Admin → Pengguna → Tambah, isi data, simpan.",
+    "Bagaimana backup data?": "Gunakan fitur Ekspor di Pengaturan → Backup Data.",
+    "Setting lokasi?": "Di Pengaturan Sistem Anda bisa mengatur radius verifikasi lokasi."
+  },
+  "guru": {
+    "Cara pakai aplikasi?": "Buka menu Scan → Pindai QR siswa untuk absensi.",
+    "Lihat laporan?": "Masuk ke Laporan → pilih tanggal/kelas → lihat ringkasan.",
+    "Butuh bantuan?": "Hubungi admin sekolah atau gunakan menu Bantuan."
+  }
+}
