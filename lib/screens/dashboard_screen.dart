@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../widgets/app_drawer.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
-import 'qr_generator_screen.dart';
 import 'report_screen.dart';
 import 'scan_screen.dart';
 import 'student_list_screen.dart';
@@ -38,13 +37,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  void _openQrGenerator(BuildContext context) {
-    Navigator.popUntil(context, (route) => route.isFirst);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const QrGeneratorScreen()),
-    );
-  }
+  // QR Generator feature removed per request
 
   void _logout(BuildContext context) {
     Navigator.popUntil(context, (route) => route.isFirst);
@@ -80,11 +73,6 @@ class DashboardScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => ChatScreen(role: role)),
                 );
               },
-            ),
-            _DashboardMenuItem(
-              title: 'QR Generator',
-              icon: Icons.qr_code_rounded,
-              onTap: () => _openQrGenerator(context),
             ),
             _DashboardMenuItem(
               title: 'Laporan Absensi',

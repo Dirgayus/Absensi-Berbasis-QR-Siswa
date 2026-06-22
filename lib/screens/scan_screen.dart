@@ -37,16 +37,29 @@ class _ScanScreenState extends State<ScanScreen> {
       return;
     }
 
+    final extracted = _extractNis(rawValue);
+
     _isProcessing = true;
 
     try {
-      final student = await DatabaseService.instance.findStudentByQr(rawValue);
+      final student = await DatabaseService.instance.findStudentByQr(extracted);
       if (student == null) {
         if (!mounted) {
           return;
         }
+        // Tampilkan nilai mentah + hasil ekstraksi untuk diagnosis
+        final displayRaw = rawValue.length > 60
+            ? '${rawValue.substring(0, 60)}...'
+            : rawValue;
+        final displayExtracted = extracted.length > 60
+            ? '${extracted.substring(0, 60)}...'
+            : extracted;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('QR tidak terdaftar sebagai siswa.')),
+          SnackBar(
+            content: Text(
+              'QR tidak terdaftar sebagai siswa. Scanned: $displayRaw\nExtracted: $displayExtracted',
+            ),
+          ),
         );
         return;
       }
@@ -94,6 +107,50 @@ class _ScanScreenState extends State<ScanScreen> {
       await Future<void>.delayed(const Duration(seconds: 2));
       _isProcessing = false;
     }
+  }
+
+  String _extractNis(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return trimmed;
+
+    // Hilangkan spasi di mana-mana
+    final cleaned = trimmed.replaceAll(RegExp(r'\s+'), '');
+
+    // Coba parsing sebagai URI untuk ambil query param atau segmen path terakhir
+    try {
+      final uri = Uri.parse(cleaned);
+      if (uri.hasQuery) {
+        final q = uri.queryParameters;
+        for (final key in ['nis', 'NIS', 'id', 'code', 'q', 'student', 's']) {
+          if (q.containsKey(key)) {
+            final val = q[key]?.trim();
+            if (val != null && val.isNotEmpty) return val;
+          }
+        }
+        if (q.isNotEmpty) {
+          final first = q.values.first.trim();
+          if (first.isNotEmpty) return first;
+        }
+      }
+
+      if (uri.pathSegments.isNotEmpty) {
+        final last = uri.pathSegments.last.trim();
+        if (last.isNotEmpty) return last;
+      }
+    } catch (_) {
+      // Jika bukan URI, lanjut ke heuristik
+    }
+
+    // Ambil urutan karakter alfanumerik terpanjang sebagai cadangan
+    final matches = RegExp(
+      r'[A-Za-z0-9]+',
+    ).allMatches(cleaned).map((m) => m.group(0)!).toList();
+    if (matches.isNotEmpty) {
+      matches.sort((a, b) => b.length.compareTo(a.length));
+      return matches.first;
+    }
+
+    return cleaned;
   }
 
   @override

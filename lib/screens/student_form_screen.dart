@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/student.dart';
 import '../services/database_service.dart';
+import '../services/auth_service.dart';
 
 class StudentFormScreen extends StatefulWidget {
   final Student? student;
@@ -44,6 +45,20 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
   }
 
   Future<void> _save() async {
+    final isAdmin = (AuthService.instance.currentRole ?? '')
+        .toLowerCase()
+        .contains('admin');
+    if (!isAdmin) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Hanya administrator yang dapat mengubah atau menambah data siswa.',
+          ),
+        ),
+      );
+      return;
+    }
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -96,6 +111,9 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = (AuthService.instance.currentRole ?? '')
+        .toLowerCase()
+        .contains('admin');
     return Scaffold(
       appBar: AppBar(title: Text(_isEdit ? 'Edit Siswa' : 'Tambah Siswa')),
       body: Padding(
@@ -185,7 +203,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: _isSaving ? null : _save,
+                  onPressed: (_isSaving || !isAdmin) ? null : _save,
                   icon: const Icon(Icons.save_rounded),
                   label: Text(_isSaving ? 'Menyimpan...' : 'Simpan'),
                 ),

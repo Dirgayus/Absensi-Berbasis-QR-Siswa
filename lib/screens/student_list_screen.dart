@@ -3,6 +3,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../models/student.dart';
 import '../services/database_service.dart';
+import '../services/auth_service.dart';
 import 'student_form_screen.dart';
 
 class StudentListScreen extends StatefulWidget {
@@ -159,6 +160,9 @@ class _StudentListScreenState extends State<StudentListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = (AuthService.instance.currentRole ?? '')
+        .toLowerCase()
+        .contains('admin');
     return Scaffold(
       appBar: AppBar(title: const Text('Data Siswa')),
       body: _isLoading
@@ -180,30 +184,40 @@ class _StudentListScreenState extends State<StudentListScreen> {
                         'NIS: ${student.nis} | Kelas: ${student.className}',
                       ),
                       onTap: () => _showQrDialog(student),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            _openForm(student: student);
-                          }
-                          if (value == 'delete') {
-                            _deleteStudent(student);
-                          }
-                        },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(value: 'edit', child: Text('Edit')),
-                          PopupMenuItem(value: 'delete', child: Text('Hapus')),
-                        ],
-                      ),
+                      trailing: isAdmin
+                          ? PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  _openForm(student: student);
+                                }
+                                if (value == 'delete') {
+                                  _deleteStudent(student);
+                                }
+                              },
+                              itemBuilder: (context) => const [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text('Edit'),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Text('Hapus'),
+                                ),
+                              ],
+                            )
+                          : null,
                     ),
                   );
                 },
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah Siswa'),
-      ),
+      floatingActionButton: isAdmin
+          ? FloatingActionButton.extended(
+              onPressed: () => _openForm(),
+              icon: const Icon(Icons.add),
+              label: const Text('Tambah Siswa'),
+            )
+          : null,
     );
   }
 }

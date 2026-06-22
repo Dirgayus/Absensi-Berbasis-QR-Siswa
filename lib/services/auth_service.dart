@@ -8,6 +8,10 @@ class AuthService {
     'guru': 'guru123',
   };
 
+  String? _currentRole;
+
+  String? get currentRole => _currentRole;
+
   String? login(String username, String password) {
     final normalizedUsername = username.trim().toLowerCase();
     final normalizedPassword = password.trim();
@@ -18,9 +22,11 @@ class AuthService {
     }
 
     if (normalizedUsername == 'admin') {
-      return 'Admin';
+      _currentRole = 'Admin';
+      return _currentRole;
     }
 
-    return 'Guru';
+    _currentRole = 'Guru';
+    return _currentRole;
   }
 }
