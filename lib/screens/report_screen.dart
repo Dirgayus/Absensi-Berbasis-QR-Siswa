@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../models/attendance.dart';
 import '../models/student.dart';
+import '../services/auth_service.dart';
 import '../services/database_service.dart';
 
 class ReportScreen extends StatefulWidget {
@@ -207,6 +208,10 @@ class _ReportScreenState extends State<ReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = (AuthService.instance.currentRole ?? '')
+        .toLowerCase()
+        .contains('admin');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Laporan Absensi'),
@@ -246,7 +251,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 return _ReportItem.toWidget(
                   context: context,
                   item: item,
-                  onTap: () => _showEditStatusDialog(item),
+                  onTap: isAdmin ? () => _showEditStatusDialog(item) : null,
                 );
               },
             ),
@@ -274,7 +279,7 @@ class _ReportItem {
   static Widget toWidget({
     required BuildContext context,
     required _ReportItem item,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       title: Text(item.studentName),
