@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
 import 'services/database_service.dart';
+import 'services/auth_service.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/report_screen.dart';
 import 'screens/scan_screen.dart';
 import 'screens/student_list_screen.dart';
+import 'screens/register_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.instance.init();
+  await AuthService.instance.init();
   runApp(const AbsensiQrApp());
 }
 
@@ -58,6 +61,7 @@ class AbsensiQrApp extends StatelessWidget {
       initialRoute: LoginScreen.routeName,
       routes: {
         LoginScreen.routeName: (context) => const LoginScreen(),
+        RegisterScreen.routeName: (context) => const RegisterScreen(),
         StudentListScreen.routeName: (context) => const StudentListScreen(),
         ScanScreen.routeName: (context) => const ScanScreen(),
         ReportScreen.routeName: (context) => const ReportScreen(),

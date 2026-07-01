@@ -116,99 +116,107 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
         .contains('admin');
     return Scaffold(
       appBar: AppBar(title: Text(_isEdit ? 'Edit Siswa' : 'Tambah Siswa')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Siswa',
-                  border: OutlineInputBorder(),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nama Siswa',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Nama wajib diisi';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Nama wajib diisi';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _nisController,
-                decoration: const InputDecoration(
-                  labelText: 'NIS',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _nisController,
+                  decoration: const InputDecoration(
+                    labelText: 'NIS',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'NIS wajib diisi';
+                    }
+                    return null;
+                  },
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (_) => setState(() {}),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'NIS wajib diisi';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              if (_nisController.text.isNotEmpty)
-                Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 12),
+                if (_nisController.text.isNotEmpty)
+                  Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Preview QR Code:',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            QrImageView(
+                              data: _nisController.text.trim(),
+                              version: QrVersions.auto,
+                              size: 150,
+                              foregroundColor: Colors.black,
+                              backgroundColor: Colors.white,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'NIS: ${_nisController.text.trim()}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Preview QR Code:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          QrImageView(
-                            data: _nisController.text.trim(),
-                            version: QrVersions.auto,
-                            size: 150,
-                            foregroundColor: Colors.black,
-                            backgroundColor: Colors.white,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'NIS: ${_nisController.text.trim()}',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                TextFormField(
+                  controller: _classController,
+                  decoration: const InputDecoration(
+                    labelText: 'Kelas',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Kelas wajib diisi';
+                    }
+                    return null;
+                  },
                 ),
-              TextFormField(
-                controller: _classController,
-                decoration: const InputDecoration(
-                  labelText: 'Kelas',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: (_isSaving || !isAdmin) ? null : _save,
+                    icon: const Icon(Icons.save_rounded),
+                    label: Text(_isSaving ? 'Menyimpan...' : 'Simpan'),
+                  ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Kelas wajib diisi';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: (_isSaving || !isAdmin) ? null : _save,
-                  icon: const Icon(Icons.save_rounded),
-                  label: Text(_isSaving ? 'Menyimpan...' : 'Simpan'),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

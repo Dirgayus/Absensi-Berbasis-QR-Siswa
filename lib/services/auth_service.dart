@@ -1,32 +1,95 @@
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 class AuthService {
   AuthService._();
 
   static final AuthService instance = AuthService._();
 
-  final Map<String, String> _credentials = {
-    'admin': 'admin123',
-    'guru': 'guru123',
+  static const _storageKey = 'auth_accounts';
+
+  final Map<String, Map<String, String>> _accounts = {
+    'admin': {'password': 'admin123', 'role': 'Admin'},
+    'guru': {'password': 'guru123', 'role': 'Guru'},
   };
 
   String? _currentRole;
 
   String? get currentRole => _currentRole;
 
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_storageKey);
+    if (stored == null || stored.trim().isEmpty) {
+      return;
+    }
+
+    final decoded = jsonDecode(stored);
+    if (decoded is! Map) {
+      return;
+    }
+
+    for (final entry in decoded.entries) {
+      final value = entry.value;
+      if (value is Map) {
+        final password = value['password']?.toString();
+        final role = value['role']?.toString();
+        if (password != null &&
+            password.isNotEmpty &&
+            role != null &&
+            role.isNotEmpty) {
+          _accounts[entry.key.toString().toLowerCase()] = {
+            'password': password,
+            'role': role,
+          };
+        }
+      }
+    }
+  }
+
+  Future<bool> registerAccount({
+    required String username,
+    required String password,
+    required String role,
+  }) async {
+    final normalizedUsername = username.trim().toLowerCase();
+    final normalizedPassword = password.trim();
+    final normalizedRole = role.trim();
+
+    if (normalizedUsername.isEmpty ||
+        normalizedPassword.isEmpty ||
+        normalizedRole.isEmpty) {
+      return false;
+    }
+
+    if (_accounts.containsKey(normalizedUsername)) {
+      return false;
+    }
+
+    _accounts[normalizedUsername] = {
+      'password': normalizedPassword,
+      'role': normalizedRole,
+    };
+    await _saveAccounts();
+    return true;
+  }
+
+  Future<void> _saveAccounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_storageKey, jsonEncode(_accounts));
+  }
+
   String? login(String username, String password) {
     final normalizedUsername = username.trim().toLowerCase();
     final normalizedPassword = password.trim();
 
-    final expectedPassword = _credentials[normalizedUsername];
-    if (expectedPassword == null || expectedPassword != normalizedPassword) {
+    final account = _accounts[normalizedUsername];
+    if (account == null || account['password'] != normalizedPassword) {
       return null;
     }
 
-    if (normalizedUsername == 'admin') {
-      _currentRole = 'Admin';
-      return _currentRole;
-    }
-
-    _currentRole = 'Guru';
+    _currentRole = account['role'];
     return _currentRole;
   }
 }

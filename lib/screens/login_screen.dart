@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 import 'dashboard_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
@@ -293,7 +294,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 14),
+                                const SizedBox(height: 10),
+                                TextButton(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            RegisterScreen.routeName,
+                                          );
+                                        },
+                                  child: const Text('Belum punya akun? Daftar'),
+                                ),
+                                const SizedBox(height: 10),
                                 Container(
                                   padding: const EdgeInsets.all(14),
                                   decoration: BoxDecoration(

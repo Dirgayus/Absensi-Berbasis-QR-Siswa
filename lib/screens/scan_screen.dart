@@ -15,6 +15,11 @@ class ScanScreen extends StatefulWidget {
 }
 
 class _ScanScreenState extends State<ScanScreen> {
+  static const int _onTimeHour = 7;
+  static const int _onTimeMinute = 30;
+  static const int _lateGraceMinutes = 15;
+  static const Duration _successDialogDuration = Duration(seconds: 2);
+
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
   );
@@ -67,8 +72,18 @@ class _ScanScreenState extends State<ScanScreen> {
       final now = DateTime.now();
       final date = DateFormat('yyyy-MM-dd').format(now);
       final time = DateFormat('HH:mm:ss').format(now);
-      final isLate = now.hour > 7 || (now.hour == 7 && now.minute > 15);
-      final status = isLate ? 'Terlambat' : 'Hadir';
+      final scanMinutes = now.hour * 60 + now.minute;
+      final onTimeMinutes = _onTimeHour * 60 + _onTimeMinute;
+      final lateLimitMinutes = onTimeMinutes + _lateGraceMinutes;
+
+      String status;
+      if (scanMinutes <= onTimeMinutes) {
+        status = 'Hadir';
+      } else if (scanMinutes <= lateLimitMinutes) {
+        status = 'Terlambat';
+      } else {
+        status = 'Tidak Hadir';
+      }
 
       final alreadyAttendance = await DatabaseService.instance
           .hasAttendanceToday(student.id!, date);
@@ -97,15 +112,79 @@ class _ScanScreenState extends State<ScanScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Absensi berhasil: ${student.name} ($status)'),
-          backgroundColor: status == 'Hadir' ? Colors.green : Colors.orange,
-        ),
+      await _showSuccessDialog(
+        studentName: student.name,
+        status: status,
+        date: date,
+        time: time,
       );
     } finally {
-      await Future<void>.delayed(const Duration(seconds: 2));
       _isProcessing = false;
+    }
+  }
+
+  Future<void> _showSuccessDialog({
+    required String studentName,
+    required String status,
+    required String date,
+    required String time,
+  }) async {
+    if (!mounted) return;
+
+    final statusColor = status == 'Hadir'
+        ? Colors.green
+        : status == 'Terlambat'
+        ? Colors.orange
+        : Colors.red;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Absensi Berhasil'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 32,
+                backgroundColor: statusColor.withValues(alpha: 0.15),
+                child: Icon(Icons.check_rounded, color: statusColor, size: 36),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                studentName,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                status,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: statusColor,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text('Tanggal: $date'),
+              Text('Jam: $time'),
+            ],
+          ),
+        );
+      },
+    );
+
+    await Future<void>.delayed(_successDialogDuration);
+
+    if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 
@@ -157,33 +236,47 @@ class _ScanScreenState extends State<ScanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Scan Absensi QR')),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 4,
-            child: MobileScanner(controller: _controller, onDetect: _onDetect),
-          ),
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Petunjuk:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text('- Arahkan kamera ke QR Code siswa'),
-                  Text('- Pastikan pencahayaan cukup'),
-                  Text('- Sistem menyimpan absensi otomatis'),
-                ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              flex: 4,
+              child: MobileScanner(
+                controller: _controller,
+                onDetect: _onDetect,
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Petunjuk:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('- Arahkan kamera ke QR Code siswa'),
+                      const Text('- Pastikan pencahayaan cukup'),
+                      const Text('- Sistem menyimpan absensi otomatis'),
+                      const SizedBox(height: 8),
+                      Text(
+                        '- Batas hadir: 07:30, terlambat: 07:45, lewat itu: Tidak Hadir',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

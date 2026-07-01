@@ -129,21 +129,6 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'QR ${student.name} siap di-screenshot.',
-                            ),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.screenshot),
-                      label: const Text('Screenshot'),
-                    ),
-                    const SizedBox(width: 8),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: const Text('Tutup'),
