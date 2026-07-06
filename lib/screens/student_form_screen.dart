@@ -69,7 +69,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
 
     final name = _nameController.text.trim();
     final nis = _nisController.text.trim();
-    final className = _classController.text.trim();
+    final className = _classController.text.trim(); //Menampilkan sebagai QR menggunakan QrImageView, dan menyimpan NIS sebagai QR Code di database.
 
     try {
       final student = Student(
@@ -168,7 +168,7 @@ class _StudentFormScreenState extends State<StudentFormScreen> {
                           border: Border.all(color: Colors.grey[300]!),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Column(
+                        child: Column( //Menampilkan QR Code siswa berdasarkan NIS yang diinputkan.
                           children: [
                             const Text(
                               'Preview QR Code:',

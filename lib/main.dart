@@ -63,7 +63,7 @@ class AbsensiQrApp extends StatelessWidget {
         LoginScreen.routeName: (context) => const LoginScreen(),
         RegisterScreen.routeName: (context) => const RegisterScreen(),
         StudentListScreen.routeName: (context) => const StudentListScreen(),
-        ScanScreen.routeName: (context) => const ScanScreen(),
+        ScanScreen.routeName: (context) => const ScanScreen(), //untuk registrasi siswa, menampilkan daftar siswa, dan scan QR Code siswa untuk absensi.
         ReportScreen.routeName: (context) => const ReportScreen(),
       },
       onGenerateRoute: (settings) {

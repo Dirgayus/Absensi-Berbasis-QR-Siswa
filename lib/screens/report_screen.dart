@@ -103,7 +103,7 @@ class _ReportScreenState extends State<ReportScreen> {
           status: attendance.status,
         );
       }
-
+//untuk ubah status absensi di laporan
       return _ReportItem(
         attendanceId: null,
         studentId: student.id,
@@ -119,39 +119,96 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Future<void> _showEditStatusDialog(_ReportItem item) async {
-    final choices = ['Hadir', 'Terlambat', 'Sakit', 'Izin', 'Tidak Hadir'];
+    final choices = [
+      'Hadir',
+      'Terlambat',
+      'Sakit',
+      'Izin',
+      'Dispensasi',
+      'Tidak Hadir',
+    ];
     var selected = item.status;
 
     final result = await showDialog<String?>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ubah status absensi'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: choices
-              .map(
-                (c) => RadioListTile<String>(
-                  value: c,
-                  groupValue: selected,
-                  title: Text(c),
-                  onChanged: (v) {
-                    selected = v ?? selected;
-                    setState(() {});
-                  },
+      builder: (context) => StatefulBuilder(
+        builder: (context, dialogSetState) {
+          Widget buildChoice(String choice) {
+            final isSelected = selected == choice;
+            final colorScheme = Theme.of(context).colorScheme;
+
+            return Material(
+              color: isSelected
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.7)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  dialogSetState(() {
+                    selected = choice;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSelected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.outline,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          choice,
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              )
-              .toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(selected),
-            child: const Text('Simpan'),
-          ),
-        ],
+              ),
+            );
+          }
+
+          return AlertDialog(
+            title: const Text('Ubah status absensi'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: choices
+                    .map(
+                      (choice) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: buildChoice(choice),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(null),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(selected),
+                child: const Text('Simpan'),
+              ),
+            ],
+          );
+        },
       ),
     );
 
@@ -170,6 +227,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await DatabaseService.instance.updateAttendance(updated);
     } else {
       if (item.studentId == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Gagal: student id tidak tersedia.')),
         );
@@ -186,6 +244,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await DatabaseService.instance.insertAttendance(newAttendance);
     }
 
+    if (!mounted) return;
     await _loadAttendance();
   }
 
@@ -208,9 +267,11 @@ class _ReportScreenState extends State<ReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = (AuthService.instance.currentRole ?? '')
+    final currentRole = (AuthService.instance.currentRole ?? '')
         .toLowerCase()
-        .contains('admin');
+        .trim();
+    final canEditAttendance =
+        currentRole.contains('admin') || currentRole.contains('guru');
 
     return Scaffold(
       appBar: AppBar(
@@ -251,7 +312,9 @@ class _ReportScreenState extends State<ReportScreen> {
                 return _ReportItem.toWidget(
                   context: context,
                   item: item,
-                  onTap: isAdmin ? () => _showEditStatusDialog(item) : null,
+                  onTap: canEditAttendance
+                      ? () => _showEditStatusDialog(item)
+                      : null,
                 );
               },
             ),
@@ -295,7 +358,7 @@ class _ReportItem {
     );
   }
 
-  static Color _getStatusColor(String status) {
+  static Color _getStatusColor(String status) { //Untuk Pewarnaan status absensi di laporan
     switch (status) {
       case 'Hadir':
         return Colors.green;
@@ -304,6 +367,8 @@ class _ReportItem {
       case 'Sakit':
       case 'Izin':
         return Colors.blue;
+      case 'Dispensasi':
+        return Colors.teal;
       case 'Tidak Hadir':
         return Colors.red;
       default:

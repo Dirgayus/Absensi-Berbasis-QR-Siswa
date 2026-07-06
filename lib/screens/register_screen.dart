@@ -19,7 +19,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isLoading = false;
   bool _obscurePassword = true;
-  String _selectedRole = 'Guru';
 
   @override
   void dispose() {
@@ -41,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final success = await AuthService.instance.registerAccount(
       username: _usernameController.text,
       password: _passwordController.text,
-      role: _selectedRole,
+      role: 'Guru',
     );
 
     if (!mounted) {
@@ -93,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Register untuk menambah akun guru atau admin.',
+                          'Register untuk menambah akun guru.',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: Colors.black54),
                         ),
@@ -161,28 +160,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           },
                         ),
                         const SizedBox(height: 14),
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedRole,
+                        TextFormField(
+                          initialValue: 'Guru',
+                          enabled: false,
                           decoration: const InputDecoration(
                             labelText: 'Role',
                             prefixIcon: Icon(Icons.badge_outlined),
                           ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'Guru',
-                              child: Text('Guru'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Admin',
-                              child: Text('Admin'),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            if (value == null) return;
-                            setState(() {
-                              _selectedRole = value;
-                            });
-                          },
                         ),
                         const SizedBox(height: 20),
                         FilledButton.icon(

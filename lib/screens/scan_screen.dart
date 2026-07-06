@@ -26,7 +26,7 @@ class _ScanScreenState extends State<ScanScreen> {
 
   bool _isProcessing = false;
 
-  @override
+  @override //Proses terjadinya scan QR ekstraksi NIS, cek data siswa, dan penentuan status absensi.
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -241,7 +241,7 @@ class _ScanScreenState extends State<ScanScreen> {
           children: [
             Expanded(
               flex: 4,
-              child: MobileScanner(
+              child: MobileScanner( //Kamera untuk scan QR Code siswa, dan mengekstraksi NIS dari QR Code.
                 controller: _controller,
                 onDetect: _onDetect,
               ),

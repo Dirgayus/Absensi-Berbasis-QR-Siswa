@@ -24,7 +24,7 @@ class DashboardScreen extends StatelessWidget {
     Navigator.pushNamed(context, StudentListScreen.routeName);
   }
 
-  void _openScan(BuildContext context) {
+  void _openScan(BuildContext context) { //Untuk fungsi membuka scan
     Navigator.popUntil(context, (route) => route.isFirst);
     Navigator.pushNamed(context, ScanScreen.routeName);
   }

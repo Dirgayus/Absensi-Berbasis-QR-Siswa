@@ -89,7 +89,7 @@ class DatabaseService {
     }
 
     if (kIsWeb) {
-      final result = List<Student>.from(_memoryStudents)
+      final result = List<Student>.from(_memoryStudents) //pencarian siswa berdasarkan QR yang sudah dibuatkan 
         ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
       return result;
     }
@@ -185,7 +185,7 @@ class DatabaseService {
     );
     _dataChangesController.add(null);
     return result;
-  }
+  } //untuk simpan absensi.
 
   Future<int> deleteStudent(int id) async {
     if (_useApi) {
