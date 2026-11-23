@@ -12,6 +12,11 @@
 .swiftpm/
 migrate_working_dir/
 
+# Local backend credentials and database certificates
+backend/.env
+backend/supabase-ca.crt
+backend/node_modules/
+
 # IntelliJ related
 *.iml
 *.ipr
